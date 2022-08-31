@@ -1,0 +1,256 @@
+﻿@model Inspinia_MVC5.UploadModels.Upload
+@{
+
+    List<Inspinia_MVC5.UploadModels.Upload> uploaded = ViewData["UploadedData"] as List<Inspinia_MVC5.UploadModels.Upload>;
+    ViewBag.Title = "Dashboard";
+    <style>
+        .swal2-container{
+            z-index:9999999 !important;
+        }
+    </style>
+}
+<script src="~/Scripts/jquery-2.1.1.min.js"></script>
+<script src="~/Scripts/jquery.validate.min.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+@*<script src="~/Scripts/sweetalert2.all.min.js"></script>*@
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>File Upload</h5>
+            </div>
+            <div class="ibox-content">
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="button" id="showUpload" class="btn btn-info pull-right">Upload File</button>
+                    </div>
+                </div>
+                <br />
+                <table class="table table-striped table-bordered table-hover dataTables-example" id="tblUpload">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Bank</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var items in uploaded)
+                        {
+                            <tr>
+                                <td>@items.code</td>
+                                <td>@items.bank</td>
+                                <td>@items.amount</td>
+                                <td>@items.status</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Upload -->
+<div class="modal fade" id="modalUpload" tabindex="-1" role="dialog" aria-labelledby="modalUploadLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalUploadLabel">Upload</h5>
+                <button type="button" class="close" aria-label="Close" id="closeModal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="ibox ">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    @using (Html.BeginForm("UploadFile", "Pages", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                                    {
+                                        <div class="col-md-12">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    @Html.TextBoxFor(m => m.file, new { @class = "", type = "file" })
+                                                    @Html.ValidationMessageFor(model => model.file)
+                                                    <br />
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="row">
+                                                        <div class="col-md-3">
+                                                            <input id="submitButtonclick" type="button" class="btn btn-primary" value="Submit">
+                                                            <button id="submitButton" type="submit" class="btn btn-primary submitButton" style="visibility:hidden">Submit</button>
+                                                        </div>
+                                                        @*<div class="col-md-3">
+                                                                <button id="resetbtn" type="button" class="btn btn-danger" onclick="resetTable()">Clear Selected File</button>
+                                                            </div>*@
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="col-md-3">
+                                                @using (Html.BeginForm("ResetUpload", "Pages"))
+                                                {
+                                                    <button id="reset" class="btn btn-danger hidden">Reset</button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <table class="table table-striped table-bordered table-hover dataTables-example" id="tblUploadFile">
+                                    <thead>
+                                        <tr>
+                                            @*<th>Code</th>*@
+                                            <th>Bank</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="width:100%" id="tblUploadFileBody">
+                                        @if (ViewBag.Record != null)
+                                        {
+                                            foreach (var item in @ViewBag.Record)
+                                            {
+                                                <tr>
+                                                    @*<td class="">@item.ItemArray[0].ToString()</td>*@
+                                                    <td class="bank">@item.ItemArray[1].ToString()</td>
+                                                    <td class="amount">@item.ItemArray[2].ToString()</td>
+                                                    <td class="status">@item.ItemArray[3].ToString()</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveFile">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Loader-->
+<div id="loadingModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+    <img src="@Url.Content("~/images/ajax_loader.gif")" alt="Loading" style="margin-left:50%;margin-top:20%">
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        if(@ViewBag.HasData == 1){
+            $("#modalUpload").modal("show");
+        }
+
+        $("#showUpload").click(function () {
+            $("#modalUpload").modal("show");
+        })
+
+        $("#submitButtonclick").click(function () {
+            $("#loadingModal").modal("show");
+            $(".submitButton").trigger("click");
+        })
+
+        $("#closeModal").click(function(){
+            Swal.fire({
+                title: 'Are you sure? <br /> All data that are not save will be lost',
+                showDenyButton: false,
+                showCancelButton: true,
+                confirmButtonText: 'Ok',
+            }).then((result) => {
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed) {
+                    $("#reset").click();
+                    $("#modalUpload").modal("hide");
+                } 
+            })
+        })
+
+
+        $("#saveFile").click(function(){
+            Swal.fire({
+                title: 'Save the upload file?',
+                showDenyButton: false,
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+            }).then((result) => {
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed) {
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '@Url.Action("addUploadH", "Pages")',
+                        data: {
+                           
+                        },
+                        async: true,
+                        success: function (response) {
+                            if(response.success){
+                                insertUploadL(response.responseText);
+                            }
+                        },
+                        error: function (response) {
+                            swal.fire("Error!", response.responseText, "error");
+
+                        }
+                    })
+
+                    //$("#reset").click();
+                    //$("#modalUpload").modal("hide");
+                } 
+            })
+        })
+    })
+
+    function insertUploadL(code){
+        
+        $('#tblUploadFile > tbody  > tr').each(function () {
+            var item = $(this);
+            var bank = item.find('.bank').html();
+            var amount = item.find('.amount').html();
+            var status = item.find('.status').html();
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("addUploadL", "Pages")',
+                data: {
+                    code: code,
+                    bank:bank,
+                    amount: amount,
+                    status: status
+                },
+                async: true,
+                success: function (response) {
+                    //if(response.success){
+                      
+                    //}
+                },
+                error: function (response) {
+                    swal.fire("Error!", response.responseText, "error");
+
+                }
+            })
+        });
+
+        
+        $("#reset").click();
+        $("#modalUpload").modal("hide");
+    }
+</script>

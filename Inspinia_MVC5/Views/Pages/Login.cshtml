@@ -1,0 +1,114 @@
+﻿@{
+    Layout = null;
+    <style>
+        .showpass {
+            float: right;
+            margin-right: 6px;
+            margin-top: -25px;
+            position: relative;
+            z-index: 2;
+        }
+    </style>
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoneStyle | Login</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Fonts/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="~/Content/animate.css" rel="stylesheet">
+    <link href="~/Content/style.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="~/Scripts/sweetalert2.min.css">
+</head>
+<body class="white-bg">
+    <div class="loginColumns animated fadeInDown">
+        <div class="row">
+            <div class="col-md-6">
+                <center>
+                    <img src="~/Images/Logo.jpg" height="330" />
+                </center>
+            </div>
+            <div class="col-md-6">
+                <div class="ibox-content" style="margin-top:10px">
+
+                    @using (Ajax.BeginForm("Login", "Pages", new AjaxOptions { HttpMethod = "POST", OnSuccess = "OnSuccess", OnFailure = "OnFailure" }, new { id = "inquiry" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Username" required="" autocomplete="off" value="asher@gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required="" @*autocomplete="off"*@ value="1234">
+                            <span class="fa fa-eye showpass" onclick="showPassword1()" id="showPassword1"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary block full-width m-b">Login</button>
+                        <a href="#">
+                            <small>Forgot password?</small>
+                        </a>
+                    }
+                    <p class="m-t">
+
+                    </p>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-6">
+                FoneStyle
+            </div>
+            <div class="col-md-6 text-right">
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+@Html.Hidden("RedirectTo", Url.Action("Dashboard", "Pages"))
+
+<script src="~/Scripts/jquery-2.1.1.min.js"></script>
+<script src="~/Scripts/jquery.validate.min.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+@*<script src="~/Scripts/sweetalert2.all.min.js"></script>*@
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+
+    function OnSuccess(data) {
+        if (data.success) {
+            Swal.fire({
+                //position: 'top-end',
+                icon: 'success',
+                title: 'Success',
+                showConfirmButton: false,
+                //timer: 1500
+            })
+            window.setTimeout(function () {
+                var url = $("#RedirectTo").val();
+                location.href = url;
+            }, 1500);
+        }
+        else {
+            swal.fire("Please Check your email and password", "", "warning")
+        }
+    }
+    function OnFailure(data) {
+     
+    }
+
+    function showPassword1() {
+        var x = document.getElementById("password");
+        if (x.type === "password") {
+            x.type = "text";
+            $("#showPassword1").removeClass("fa fa-eye")
+            $("#showPassword1").addClass("fa fa-eye-slash")
+
+        } else {
+            x.type = "password";
+            $("#showPassword1").removeClass("fa fa-eye-slash")
+            $("#showPassword1").addClass("fa fa-eye")
+        }
+    }
+</script>
